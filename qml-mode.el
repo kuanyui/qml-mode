@@ -73,8 +73,6 @@
   (concat "\\("
           (mapconcat 'identity list "\\|")
           "\\)"))
-(qml-mode:list-to-string qml-mode-types)
-(list  qml-mode-types)
 
 (define-generic-mode qml-mode
   ;; comments
