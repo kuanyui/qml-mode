@@ -82,9 +82,9 @@
   qml-mode-keywords
   ;; other fontlock
   `(
-    (, (qml-mode:list-to-string qml-mode-types) (1 font-lock-type-face))
-    (, (qml-mode:list-to-string qml-mode-constants) (1 font-lock-constant-face))
-    (, (list (concat "property[ \t]+\\(" qml-mode-types "\\|" "\\)+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)") (2 font-lock-variable-name-face)))
+    (,(qml-mode:list-to-string qml-mode-types) (1 font-lock-type-face))
+    (,(qml-mode:list-to-string qml-mode-constants) (1 font-lock-constant-face))
+    (,(list (concat "property[ \t]+\\(" qml-mode-types "\\|" "\\)+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)") (2 font-lock-variable-name-face)))
     ("\\(function\\|signal\\)\\{1\\}[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)" (2 font-lock-function-name-face))
     ("\\([a-zA-Z_\\.]+[a-zA-Z0-9_]*\\)[ \t]*:" (1 font-lock-type-face))
     ;;       ("\\([a-zA-Z0-9]+\\)[ \t]*{" (1 font-lock-))
