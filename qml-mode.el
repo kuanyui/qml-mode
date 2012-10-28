@@ -92,7 +92,7 @@
     ("\\([+-]?\\<[0-9]*\\.?[0-9]+[xX]?[0-9a-fA-F]*\\)" (1 font-lock-constant-face))
     )
   ;; filetype
-  '("\\.qml\\")
+  '("\\.qml$")
 
   ;; initializer
   (list
