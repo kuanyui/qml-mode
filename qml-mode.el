@@ -74,8 +74,7 @@
           (mapconcat 'identity list "\\|")
           "\\)"))
 
-(define-generic-mode
-    'qml-mode
+(define-generic-mode qml-mode
   ;; comments
   '("//" ("/*" . "*/"))
   ;; keywords
