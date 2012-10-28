@@ -86,12 +86,11 @@
    (eval-when-compile
      (generic-make-keywords-list qml-mode-constants '(font-lock-constant-face)))
    (list
-     (concat "property[ \t]+\\(" (qml-mode:list-to-string qml-mode-types) "\\)+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)")
-     (list 2 font-lock-variable-name-face))
-
-   '("\\(function\\|signal\\)\\{1\\}[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)" (2 font-lock-function-name-face))
-   '("\\([a-zA-Z_\\.]+[a-zA-Z0-9_]*\\)[ \t]*:" (1 font-lock-type-face))
-   '("\\<id[ \t]*:[ \t]*\\([a-zA-Z0-9_]+\\)" (1 font-lock-constant-face))
+    (concat "property[ \t]+" (qml-mode:list-to-string qml-mode-types) "+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)")
+      2 font-lock-variable-name-face)
+   '("\\(function\\|signal\\)\\{1\\}[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)" 2 font-lock-function-name-face)
+   '("\\([a-zA-Z_\\.]+[a-zA-Z0-9_]*\\)[ \t]*:" 1 font-lock-type-face)
+   '("\\<id[ \t]*:[ \t]*\\([a-zA-Z0-9_]+\\)" 1 font-lock-constant-face)
    '("\\([+-]?\\<[0-9]*\\.?[0-9]+[xX]?[0-9a-fA-F]*\\)" (1 font-lock-constant-face))
     ;; ;;       ("\\([a-zA-Z0-9]+\\)[ \t]*{" (1 font-lock-))
     )
