@@ -1,5 +1,6 @@
-
 (require 'generic-x)
+(require 'font-lock)
+
 
 (defvar qml-mode-indent-offset 4
   "Indentation offset for `qml-mode'")
@@ -82,18 +83,17 @@
   ;; other fontlock
   (list
    (eval-when-compile
-     (generic-make-keywords-list qml-mode-types '(font-lock-type-face)))
+     (generic-make-keywords-list qml-mode-types 'font-lock-type-face))
    (eval-when-compile
-     (generic-make-keywords-list qml-mode-constants '(font-lock-constant-face)))
+     (generic-make-keywords-list qml-mode-constants 'font-lock-constant-face))
+   (list "\\<id[ \t]*:[ \t]*\\([a-zA-Z0-9_]+\\)" 1 'font-lock-constant-face)
    (list
-    (concat "property[ \t]+" (qml-mode:list-to-string qml-mode-types) "+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)")
-      2 font-lock-variable-name-face)
-   '("\\(function\\|signal\\)\\{1\\}[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)" 2 font-lock-function-name-face)
-   '("\\([a-zA-Z_\\.]+[a-zA-Z0-9_]*\\)[ \t]*:" 1 font-lock-type-face)
-   '("\\<id[ \t]*:[ \t]*\\([a-zA-Z0-9_]+\\)" 1 font-lock-constant-face)
-   '("\\([+-]?\\<[0-9]*\\.?[0-9]+[xX]?[0-9a-fA-F]*\\)" (1 font-lock-constant-face))
-    ;; ;;       ("\\([a-zA-Z0-9]+\\)[ \t]*{" (1 font-lock-))
-    )
+    (concat "property[ \t]+" (qml-mode:list-to-string qml-mode-types) "+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)") 2 'font-lock-variable-name-face)
+   (list "\\(function\\|signal\\)\\{1\\}[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)" 2 'font-lock-function-name-face)
+   (list "\\([a-zA-Z_\\.]+[a-zA-Z0-9_]*\\)[ \t]*:" 1 'font-lock-type-face)
+   (list "\\([+-]?\\<[0-9]*\\.?[0-9]+[xX]?[0-9a-fA-F]*\\)" 1 'font-lock-constant-face)
+   (list "\\([a-zA-Z0-9]+\\)[ \t]*{" 1 'font-lock-builtin-face)
+   )
   ;; filetype
   '("\\.qml$")
 
@@ -107,16 +107,23 @@
                   ;; tab width
                   (set (make-local-variable 'tab-width) qml-mode-indent-offset)
                   (set (make-local-variable 'indent-tabs-mode) nil)
-                  (set (make-local-variable 'indent-line-function) 'qml-indent-line)
-                  (set (make-local-variable 'indent-region-function) 'qml-indent-region)
+                  (set (make-local-variable 'indent-line-function) 'qml-mode-indent-line)
+                  (set (make-local-variable 'indent-region-function) 'qml-mode-indent-region)
 
                   )
                 nil 'local)
-
       ))))
 
+(defun qml-in-comment-p ()
+  "Check whether we are currently in a comment"
+  (let ((here (point)))
+    (and (search-backward "/*" nil t)
+         (prog1
+             (not (search-forward "*/" here t))
+           (goto-char here) ))))
 
-(defun qml-indent-line ()
+
+(defun qml-mode-indent-line ()
   "Indent the current line"
   (if (or (qml-in-comment-p)
           (looking-at "[ \t]*/\\*") )
@@ -131,14 +138,14 @@
           )
         (cond ((looking-at "\\([ \t]*\\)\\([^ \t].*\\)?{[ \t]*$")
                (setq depth (+ (- (match-end 1) (match-beginning 1))
-                              qml-indent-width )))
+                              qml-mode-indent-offset )))
               ((looking-at "\\([ \t]*\\)[^ \t]")
                (setq depth (- (match-end 1) (match-beginning 1))) )
               (t (setq depth 0)) )
         (goto-char here)
         (beginning-of-line)
         (if (looking-at "[ \t]*}")
-            (setq depth (max (- depth qml-indent-width) 0)) )
+            (setq depth (max (- depth qml-mode-indent-offset) 0)) )
         (if (looking-at "\\([ \t]*\\)")
             (if (= depth (- (match-end 1) (match-beginning 1)))
                 nil
@@ -150,7 +157,7 @@
         (end-of-line) )))
 
 
-(defun qml-indent-region (start end)
+(defun qml-mode-indent-region (start end)
   (let ((indent-region-function nil))
     (indent-region start end nil)))
 
