@@ -1,7 +1,6 @@
 (require 'generic-x)
 (require 'font-lock)
 
-
 (defvar qml-mode-indent-offset 4
   "Indentation offset for `qml-mode'")
 
@@ -93,6 +92,7 @@
    (list "\\([a-zA-Z_\\.]+[a-zA-Z0-9_]*\\)[ \t]*:" 1 'font-lock-type-face)
    (list "\\([+-]?\\<[0-9]*\\.?[0-9]+[xX]?[0-9a-fA-F]*\\)" 1 'font-lock-constant-face)
    (list "\\([a-zA-Z0-9]+\\)[ \t]*{" 1 'font-lock-builtin-face)
+   (list "\\('[[:alpha:]]*'\\)" 1 'font-lock-string-face)
    )
   ;; filetype
   '("\\.qml$")
