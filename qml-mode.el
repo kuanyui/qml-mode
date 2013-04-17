@@ -100,6 +100,7 @@
           (mapconcat 'identity list "\\|")
           "\\)"))
 
+;;;###autoload
 (define-generic-mode qml-mode
   ;; comments
   '("//" ("/*" . "*/"))
