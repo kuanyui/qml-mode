@@ -1,28 +1,46 @@
 ;;; qml-mode.el --- Major mode for editing QT Declarative (QML) code.
 
-;; Copyright (C) 2012 Yen-Chin Lee
+;; Copyright (C) 2013 Yen-Chin Lee
 
 ;; Author: Yen-Chin Lee <coldnew.tw@gmail.com>
 ;; URL: https://github.com/coldnew/qml-mode
-;; Version: 0.1
+;; Version: 0.2
 ;; Keywords: qml, qt, qt declarative
 
 ;; This file is NOT part of GNU Emacs.
 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
 ;;; Commentary:
 
-;;; INTRODUCTION
 ;;
-;; You need this if you are writing Ubuntu Phone apps with Emacs.
+;; qml-mode is major-mode for editing Qt Declarative (QML) code.
 ;;
 
-;;; USAGE
+;;; Installation:
+
+;; If you have `melpa` and `emacs24` installed, simply type:
 ;;
-;; Type `M-x package-install qml-mode`, and add this to your init file:
+;; 	M-x package-install qml-mode
 ;;
-;;     (autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
-;;     (add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
+;; Add following lines to your init file:
 ;;
+;;	(autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
+;;	(add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
+
+;;; Code:
 
 (require 'generic-x)
 (require 'font-lock)
