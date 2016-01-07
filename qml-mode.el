@@ -1,10 +1,11 @@
-;;; qml-mode.el --- Major mode for editing QT Declarative (QML) code.
+;;; qml-mode.el --- Major mode for editing QT Declarative (QML) code.   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013 Yen-Chin Lee
+;; Copyright (C) 2010      Wen-Chun Lin
+;; Copyright (C) 2013-2016 Yen-Chin Lee
 
 ;; Author: Yen-Chin Lee <coldnew.tw@gmail.com>
 ;; URL: https://github.com/coldnew/qml-mode
-;; Version: 0.2
+;; Version: 0.3
 ;; Keywords: qml, qt, qt declarative
 
 ;; This file is NOT part of GNU Emacs.
@@ -33,178 +34,177 @@
 
 ;; If you have `melpa` and `emacs24` installed, simply type:
 ;;
-;; 	M-x package-install qml-mode
+;;      M-x package-install qml-mode
 ;;
 ;; Add following lines to your init file:
 ;;
-;;	(autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
-;;	(add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
+;;      (autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
+;;      (add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
+
+;;; ChangeLog
+;;
+;; 0.3
+;;
+;;   * rewrite based on js-mode.
+;;
+;; 0.2
+;;
+;;   * rewrite based on generic-mode.
+;;
+;; 0.1
+;;
+;;   * first version fork from cataska/qml-mode.
 
 ;;; Code:
-
-(require 'generic-x)
+(require 'js)                           ; based on js-mode
 (require 'font-lock)
 
-(defvar qml-mode-indent-offset 4
-  "Indentation offset for `qml-mode'")
+;;; User Customization
 
-(defvar qml-mode-keywords
-  '("Qt" "import" "property"
-    "State" "PropertyChanges" "StateGroup" "ParentChange"
-    "StateChangeScript" "AnchorChanges" "PropertyAnimation" "NumberAnimation"
-    "ColorAnimation" "RotationAnimation" "SequentialAnimation" "ParallelAnimation"
-    "PauseAnimation" "ParentAnimation" "AnchorAnimation" "SmoothedAnimation"
-    "PropertyAction" "ScriptAction" "Transition" "SpringFollow"
-    "Behavior" "Binding" "ListModel" "ListElement"
-    "VisualItemModel" "VisualDataModel" "Package" "XmlListModel"
-    "XmlRole" "Connections" "Component" "Timer"
-    "QtObject" "WorkerScript" "Item" "Rectangle"
-    "Image" "BorderImage" "Text" "TextInput"
-    "TextEdit" "MouseArea" "FocusScope" "Flickable"
-    "Flipable" "GestureArea" "Loader" "Repeater"
-    "SystemPalette" "LayoutItem" "Scale" "Rotation"
-    "Translate" "ViewsPositionersMediaEffects" "ListView" "GridView"
-    "PathView" "Path" "PathLine" "PathQuad"
-    "PathCubic" "PathAttribute" "PathPercent" "WebView"
-    "Column" "Row" "Grid" "Flow"
-    "SoundEffect" "Audio" "Video" "Particles"
-    "ParticleMotionLinear" "ParticleMotionGravity" "ParticleMotionWander"
-    ;; javascript keywords
-    "break"
-    "case" "catch" "const" "continue"
-    "debugger" "default" "delete" "do"
-    "else" "enum"
-    "false" "finally" "for" "function"
-    "if" "in" "instanceof" "import"
-    "let"
-    "new" "null"
-    "return"
-    "switch"
-    "this" "throw" "true" "false" "try" "typeof"
-    "var" "void"
-    "while" "with"
-    "yield"
-    "undefined"
-    ))
+(defgroup qml nil
+  "Customization variables for QML mode."
+  :tag "QML"
+  :group 'languages)
 
-(defvar qml-mode-types
-  '("int" "bool" "double" "real"
+;;; Functions
+
+(defun qml--list-to-string (list)
+  "Combine a list to string."
+  (concat "\\(" (mapconcat 'identity list "\\|") "\\)"))
+
+(defun qml-beginning-of-defun ()
+  "Value of `beginning-of-defun-function' for `qml-mode'."
+  (interactive)
+  (re-search-backward "\{"))
+
+(defun qml-end-of-defun ()
+  "Value of `end-of-defun-function' for `qml-mode'."
+  (interactive)
+  (re-search-forward "\}"))
+
+;;; KeyMap
+
+(defvar qml-mode-map
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap (kbd "C-M-a") 'qml-beginning-of-defun)
+    (define-key keymap (kbd "C-M-e") 'qml-end-of-defun)
+    keymap)
+  "Keymap for `qml-mode'.")
+
+;;; Syntax table and parsing
+
+(defconst qml--class-re
+  (js--regexp-opt-symbol
+   '("State" "PropertyChanges" "StateGroup" "ParentChange"
+     "StateChangeScript" "AnchorChanges" "PropertyAnimation" "NumberAnimation"
+     "ColorAnimation" "RotationAnimation" "SequentialAnimation" "ParallelAnimation"
+     "PauseAnimation" "ParentAnimation" "AnchorAnimation" "SmoothedAnimation"
+     "PropertyAction" "ScriptAction" "Transition" "SpringFollow"
+     "Behavior" "Binding" "ListModel" "ListElement"
+     "VisualItemModel" "VisualDataModel" "Package" "XmlListModel"
+     "XmlRole" "Connections" "Component" "Timer"
+     "QtObject" "WorkerScript" "Item" "Rectangle"
+     "Image" "BorderImage" "Text" "TextInput"
+     "TextEdit" "MouseArea" "FocusScope" "Flickable"
+     "Flipable" "GestureArea" "Loader" "Repeater"
+     "SystemPalette" "LayoutItem" "Scale" "Rotation"
+     "Translate" "ViewsPositionersMediaEffects" "ListView" "GridView"
+     "PathView" "Path" "PathLine" "PathQuad"
+     "PathCubic" "PathAttribute" "PathPercent" "WebView"
+     "Column" "Row" "Grid" "Flow"
+     "SoundEffect" "Audio" "Video" "Particles"
+     "ParticleMotionLinear" "ParticleMotionGravity" "ParticleMotionWander"))
+  "Regexp matching any QML class")
+
+(defconst qml--type-re
+  (js--regexp-opt-symbol
+   '("import" "signal" "Qt" "parent"))
+  "Regular expression matching any predefined type in QML.")
+
+(defconst qml--property
+  '("bool" "double" "real" "int"
     "string" "url" "color" "date"
-    "variant" "alias"
-    "signal" "on" "parent" "as"))
+    "variant" "alias"))
 
-(defvar qml-mode-constants
-  '("NoButton" "LeftButton" "RightButton" "MidButton"
-    "MiddleButton"
-    "Horizontal" "Vertical"
-    "AlignLeft" "AlignRight" "AlignHCenter" "AlignTop"
-    "AlignBottom" "AlignVCenter" "AlignCenter"
-    "Easing" "Linear" "InQuad" "OutQuad"
-    "InOutQuad" "OutInQuad" "InCubic" "OutCubic"
-    "InOutCubic" "OutInCubic" "InQuart" "OutQuart"
-    "InOutQuart" "OutInQuart" "InQuint" "InQuint"
-    "OutQuint" "InOutQuint" "OutInQuint" "InSine"
-    "OutSine" "InExpo" "OutExpo" "InOutExpo"
-    "OutInExpo" "InCirc" "OutCirc" "InOutCirc"
-    "OutInCirc" "InElastic" "OutElastic" "InOutElastic"
-    "OutInElastic" "InBack" "OutBack" "InOutBack"
-    "OutInBack" "InBounce" "OutBounce" "InOutBounce"
-    "OutInBounce"))
+(defconst qml--property-re
+  (concat "\\(property[ \t]+" (qml--list-to-string qml--property) "\\)+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)"))
 
+(defconst qml--constants-re
+  (js--regexp-opt-symbol
+   '("NoButton" "LeftButton" "RightButton" "MidButton"
+     "MiddleButton"
+     "Horizontal" "Vertical"
+     "AlignLeft" "AlignRight" "AlignHCenter" "AlignTop"
+     "AlignBottom" "AlignVCenter" "AlignCenter"
+     "Easing" "Linear" "InQuad" "OutQuad"
+     "InOutQuad" "OutInQuad" "InCubic" "OutCubic"
+     "InOutCubic" "OutInCubic" "InQuart" "OutQuart"
+     "InOutQuart" "OutInQuart" "InQuint" "InQuint"
+     "OutQuint" "InOutQuint" "OutInQuint" "InSine"
+     "OutSine" "InExpo" "OutExpo" "InOutExpo"
+     "OutInExpo" "InCirc" "OutCirc" "InOutCirc"
+     "OutInCirc" "InElastic" "OutElastic" "InOutElastic"
+     "OutInElastic" "InBack" "OutBack" "InOutBack"
+     "OutInBack" "InBounce" "OutBounce" "InOutBounce"
+     "OutInBounce")))
 
-(defun qml-mode:list-to-string (list)
-  ""
-  (concat "\\("
-          (mapconcat 'identity list "\\|")
-          "\\)"))
+(defconst qml--font-lock-keywords-1
+  `( ;; Keywords
+    (,qml--class-re (0 'font-lock-keyword-face))
+    (,js--keyword-re (0 'font-lock-keyword-face))
+    ;; Types
+    (,qml--type-re (1 'font-lock-type-face))
+    (,js--basic-type-re (1 'font-lock-type-face))
+    ;; Constant
+    (,qml--constants-re (0 font-lock-constant-face))
+    (,js--constant-re (0 font-lock-constant-face))
+    ("\\<id[ \t]*:[ \t]*\\([a-zA-Z0-9_]+\\)" (1 'font-lock-constant-face))
+    ("\\([+-]?\\<[0-9]*\\.?[0-9]+[xX]?[0-9a-fA-F]*\\)" . font-lock-constant-face)
+    ("\\([a-zA-Z_\\.]+[a-zA-Z0-9_]*\\)[ \t]*:" (1 font-lock-variable-name-face))
+    ;; builtin
+    ("\\([a-zA-Z0-9]+\\)[ \t]*{" (1 'font-lock-builtin-face))
+    ;; Function
+    ("\\(function\\|signal\\)\\{1\\}[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)" (2 'font-lock-function-name-face))
+    ;; string
+    ("\\('[[:alpha:]]*'\\)" (1 'font-lock-string-face)))
+  "Keywords to highlight in `qml-mode'.")
+
+(defconst qml--font-lock-keywords-2
+  `(;; This goes before keywords-1 so it gets used preferentially
+    ;; instead of the keywords in keywords-1. Don't use override
+    ;; because that will override syntactic fontification too, which
+    ;; will fontify commented-out directives as if they weren't
+    ;; commented out.
+    (,qml--property-re (1 'font-lock-type-face)
+                       (3 'font-lock-variable-name-face))
+    
+    ,@qml--font-lock-keywords-1))
+
+(defconst qml--font-lock-keywords
+  '(qml--font-lock-keywords-2
+    qml--font-lock-keywords-1
+    qml--font-lock-keywords-2))
 
 ;;;###autoload
-(define-generic-mode qml-mode
-  ;; comments
-  '("//" ("/*" . "*/"))
-  ;; keywords
-  qml-mode-keywords
-  ;; other fontlock
-  (list
-   (eval-when-compile
-     (generic-make-keywords-list qml-mode-types 'font-lock-type-face))
-   (eval-when-compile
-     (generic-make-keywords-list qml-mode-constants 'font-lock-constant-face))
-   (list "\\<id[ \t]*:[ \t]*\\([a-zA-Z0-9_]+\\)" 1 'font-lock-constant-face)
-   (list
-    (concat "property[ \t]+" (qml-mode:list-to-string qml-mode-types) "+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)") 2 'font-lock-variable-name-face)
-   (list "\\(function\\|signal\\)\\{1\\}[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)" 2 'font-lock-function-name-face)
-   (list "\\([a-zA-Z_\\.]+[a-zA-Z0-9_]*\\)[ \t]*:" 1 'font-lock-type-face)
-   (list "\\([+-]?\\<[0-9]*\\.?[0-9]+[xX]?[0-9a-fA-F]*\\)" 1 'font-lock-constant-face)
-   (list "\\([a-zA-Z0-9]+\\)[ \t]*{" 1 'font-lock-builtin-face)
-   (list "\\('[[:alpha:]]*'\\)" 1 'font-lock-string-face)
-   )
-  ;; filetype
-  '("\\.qml$")
+(define-derived-mode qml-mode js-mode "QML"
+  "Major mode for editing QML.
 
-  ;; initializer
-  (list
-   (function
-    (lambda ()
-      (add-hook 'qml-mode-hook
-                (lambda ()
+\\{qml-mode-map}"
+  :group 'qml
 
-                  ;; tab width
-                  (set (make-local-variable 'tab-width) qml-mode-indent-offset)
-                  (set (make-local-variable 'indent-tabs-mode) nil)
-                  (set (make-local-variable 'indent-line-function) 'qml-mode-indent-line)
-                  (set (make-local-variable 'indent-region-function) 'qml-mode-indent-region)
+  (setq-local font-lock-defaults (list qml--font-lock-keywords))
+  (setq-local beginning-of-defun-function 'qml-beginning-of-defun)
+  (setq-local end-of-defun-function 'qml-end-of-defun)
 
-                  )
-                nil 'local)
-      ))))
+  ;; C-style comment /* ... */
+  (setq-local comment-start "/*")
+  (setq-local comment-start-skip "/[*/]+[ \t]*")
+  (setq-local comment-end "*/")
+  (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*+/\\)")
+  (setq-local comment-continue " *"))
 
-(defun qml-in-comment-p ()
-  "Check whether we are currently in a comment"
-  (let ((here (point)))
-    (and (search-backward "/*" nil t)
-         (prog1
-             (not (search-forward "*/" here t))
-           (goto-char here) ))))
-
-
-(defun qml-mode-indent-line ()
-  "Indent the current line"
-  (if (or (qml-in-comment-p)
-          (looking-at "[ \t]*/\\*") )
-      nil
-    (save-excursion
-      (let ((here (point))
-            (depth 0))
-        (while (and (forward-line -1)
-                    (or (looking-at "^[ \t]*$")
-                        (qml-in-comment-p) ))
-          ;; Jump to a non comment/white-space line
-          )
-        (cond ((looking-at "\\([ \t]*\\)\\([^ \t].*\\)?{[ \t]*$")
-               (setq depth (+ (- (match-end 1) (match-beginning 1))
-                              qml-mode-indent-offset )))
-              ((looking-at "\\([ \t]*\\)[^ \t]")
-               (setq depth (- (match-end 1) (match-beginning 1))) )
-              (t (setq depth 0)) )
-        (goto-char here)
-        (beginning-of-line)
-        (if (looking-at "[ \t]*}")
-            (setq depth (max (- depth qml-mode-indent-offset) 0)) )
-        (if (looking-at "\\([ \t]*\\)")
-            (if (= depth (- (match-end 1) (match-beginning 1)))
-                nil
-              (delete-region (match-beginning 1) (match-end 1))
-              (indent-to depth))
-          (if (> depth 0)
-              (indent-to depth)))))
-    (if (looking-at "[ \t]*")
-        (end-of-line) )))
-
-
-(defun qml-mode-indent-region (start end)
-  (let ((indent-region-function nil))
-    (indent-region start end nil)))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
 
 
 (provide 'qml-mode)
