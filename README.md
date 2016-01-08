@@ -1,36 +1,52 @@
-qml-mode.el – Major mode for editing QT Declarative (QML) code.
-===============================================================
+## qml-mode.el
+*Major mode for editing QT Declarative (QML) code.*
+
+---
+[![License GPLv2](https://img.shields.io/badge/license-GPL_v2-green.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
+[![MELPA](http://melpa.org/packages/qml-mode-badge.svg)](http://melpa.org/#/qml-mode)
+[![MELPA Stable](http://stable.melpa.org/packages/qml-mode-badge.svg)](http://stable.melpa.org/#/qml-mode)
 
 
 qml-mode is major-mode for editing Qt Declarative (QML) code.
 
 
-Installation
-------------
+### Installation
+
 
 If you have `melpa` and `emacs24` installed, simply type:
 
-	M-x package-install qml-mode
+     M-x package-install qml-mode
 
 Add following lines to your init file:
 
-	(autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
-	(add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
+     (autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
+     (add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
 
-Function Documentation
-----------------------
-
-### `(qml-mode:list-to-string LIST)`
+### ChangeLog
 
 
+0.3
 
-### `(qml-in-comment-p)`
+  * rewrite based on js-mode.
 
-Check whether we are currently in a comment
+0.2
 
-### `(qml-mode-indent-line)`
+  * rewrite based on generic-mode.
 
-Indent the current line
+0.1
+
+  * first version fork from cataska/qml-mode.
+
+### Function Documentation
+
+
+#### `(qml-beginning-of-defun)`
+
+Value of ‘beginning-of-defun-function’ for ‘qml-mode’.
+
+#### `(qml-end-of-defun)`
+
+Value of ‘end-of-defun-function’ for ‘qml-mode’.
 
 -----
 <div style="padding-top:15px;color: #d0d0d0;">

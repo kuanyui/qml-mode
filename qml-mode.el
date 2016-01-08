@@ -1,4 +1,4 @@
-;;; qml-mode.el --- Major mode for editing QT Declarative (QML) code.   -*- lexical-binding: t -*-
+;;; qml-mode.el --- Major mode for editing QT Declarative (QML) code.
 
 ;; Copyright (C) 2010      Wen-Chun Lin
 ;; Copyright (C) 2013-2016 Yen-Chin Lee
