@@ -6,7 +6,7 @@
 
 ;; Author: Yen-Chin Lee <coldnew.tw@gmail.com>
 ;; URL: https://github.com/coldnew/qml-mode
-;; Version: 0.3
+;; Version: 0.4
 ;; Keywords: qml, qt, qt declarative
 
 ;; This file is NOT part of GNU Emacs.
@@ -47,6 +47,7 @@
 ;; 0.4
 ;;
 ;;   * Add QML component id highlighter
+;;   * Add basic types provided by QML modules as property keyword
 ;;
 ;; 0.3
 ;;
@@ -129,7 +130,10 @@
 (defconst qml--property
   '("bool" "double" "real" "int"
     "string" "url" "color" "date"
-    "variant" "alias"))
+    "variant" "alias"
+    "font" "matrix4x4" "point" "quaternion" "rect" "size" "vector2d" "vector3d" "vector4d"
+    ))
+
 
 (defconst qml--property-re
   (concat "\\(property[ \t]+" (qml--list-to-string qml--property) "\\)+[ \t]+\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)"))
